@@ -1,0 +1,43 @@
+<launch>
+
+<arg name="use_rosbot" default="false"/>
+<arg name="rosbot_pro" default="true"/>
+<arg name="use_gazebo" default="false"/>
+
+    <include if="$(arg use_gazebo)" file="$(find rosbot_gazebo)/launch/rosbot.launch"/>
+     <include if="$(arg use_gazebo)" file="$(find rosbot_gazebo)/launch/maze_world.launch"/>
+
+    <include file="$(find rplidar_ros)/launch/rplidar_a3.launch"/>
+
+    <node if="$(arg use_rosbot)" pkg="rplidar_ros" type="rplidarNode" name="rplidar">
+        <param name="angle_compensate" type="bool" value="true"/>
+        <param name="serial_baudrate" type="int" value="256000"/> <!-- model A3 (ROSbot 2.0 PRO) -->
+    </node>
+<!-- model A3 (ROSbot 2.0 PRO) -
+    <include if="$(arg use_rosbot)" file="$(find rosbot_ekf)/launch/rosserial_bridge.launch"/>
+-->
+    <include file="$(find rosbot_ekf)/launch/rosserial_bridge.launch">
+    <arg name="serial_port" value="/dev/ttyS4"/>
+    <arg name="serial_baudrate" value="460800"/>
+    </include>
+
+    <node if="$(arg use_rosbot)" pkg="tf" type="static_transform_publisher" name="laser_broadcaster" args="0 0 0 3.14 0 0 base_link laser 100" />
+    <!-- Moj wezel do generowania ruchu -->
+
+   <!-- <param name="controller_frequency" value="10.0"/>
+   <rosparam file="$(find tutorial_pkg)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+   <rosparam file="$(find tutorial_pkg)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+   <rosparam file="$(find tutorial_pkg)/config/local_costmap_params.yaml" command="load" />
+   <rosparam file="$(find tutorial_pkg)/config/global_costmap_params.yaml" command="load" />
+   <rosparam file="$(find tutorial_pkg)/config/trajectory_planner.yaml" command="load" /> -->
+   
+   <node name="teleop_twist_keyboard" pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" output="screen"/>
+
+
+    <node pkg="neural_move_pkg" type="talker.py" name="talker.py" output="screen">
+    </node>
+</launch>
+
+
+
+
